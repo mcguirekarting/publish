@@ -1,0 +1,2 @@
+# This file ensures that the plugins directory is included in git
+# The plugins directory is used by Airflow for custom plugins

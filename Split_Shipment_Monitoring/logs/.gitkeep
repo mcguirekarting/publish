@@ -1,0 +1,2 @@
+# This file ensures that the logs directory is included in git
+# The logs directory is used by Airflow to store logs

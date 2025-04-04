@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Split Shipment Monitor - Manhattan Active Omni</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.2.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-box-seam"></i> Split Shipment Monitor
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" id="nav-dashboard">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="nav-alerts">Alerts</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="nav-reports">Reports</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="nav-settings">Settings</a>
+                    </li>
+                </ul>
+                <div class="ms-auto">
+                    <span class="navbar-text me-3" id="last-updated">Last updated: Loading...</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Filter Bar -->
+    <div class="container-fluid bg-light py-3 border-bottom">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label for="org-select">Organization</label>
+                    <select class="form-select" id="org-select"></select>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label for="date-range">Date Range</label>
+                    <select class="form-select" id="date-range">
+                        <option value="7days">Last 7 Days</option>
+                        <option value="30days" selected>Last 30 Days</option>
+                        <option value="90days">Last 90 Days</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label for="node-select">Node (Location)</label>
+                    <select class="form-select" id="node-select">
+                        <option value="">All Locations</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label for="sku-input">SKU</label>
+                    <input type="text" class="form-control" id="sku-input" placeholder="Enter SKU">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="container-fluid py-3">
+        <!-- Dashboard View -->
+        <div id="dashboard-view">
+            <!-- Summary Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">Current Split Rate</h5>
+                            <h2 class="card-text text-primary" id="current-split-rate">--</h2>
+                            <p class="card-text text-muted">Current percentage of split shipments</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">7-Day Average</h5>
+                            <h2 class="card-text text-primary" id="avg-split-rate-7d">--</h2>
+                            <p class="card-text text-muted">Average over the last 7 days</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">30-Day Average</h5>
+                            <h2 class="card-text text-primary" id="avg-split-rate-30d">--</h2>
+                            <p class="card-text text-muted">Average over the last 30 days</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">Active Alerts</h5>
+                            <h2 class="card-text text-danger" id="active-alerts-count">--</h2>
+                            <p class="card-text text-muted">Alerts requiring attention</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trend Chart -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Split Shipment Trend</h5>
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-sm btn-outline-secondary">Daily</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary active">Weekly</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary">Monthly</button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="trend-chart" height="250"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Location and SKU Analysis -->
+            <div class="row">
+                <!-- Location Analysis -->
+                <div class="col-md-6">
+                    <div class="card shadow-sm">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Location Analysis</h5>
+                            <button class="btn btn-sm btn-outline-primary" id="export-location-csv">
+                                <i class="bi bi-download"></i> Export CSV
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Location</th>
+                                            <th>Total Orders</th>
+                                            <th>Split Orders</th>
+                                            <th>Split Rate</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="location-table-body">
+                                        <tr>
+                                            <td colspan="4" class="text-center">Loading data...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SKU Analysis -->
+                <div class="col-md-6">
+                    <div class="card shadow-sm">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">SKU Analysis</h5>
+                            <button class="btn btn-sm btn-outline-primary" id="export-sku-csv">
+                                <i class="bi bi-download"></i> Export CSV
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>SKU</th>
+                                            <th>Total Orders</th>
+                                            <th>Split Orders</th>
+                                            <th>Split Rate</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="sku-table-body">
+                                        <tr>
+                                            <td colspan="4" class="text-center">Loading data...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alerts View (initially hidden) -->
+        <div id="alerts-view" style="display: none;">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">Active Alerts</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Organization</th>
+                                    <th>Threshold</th>
+                                    <th>Current Value</th>
+                                    <th>Message</th>
+                                </tr>
+                            </thead>
+                            <tbody id="alerts-table-body">
+                                <tr>
+                                    <td colspan="5" class="text-center">Loading alerts...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reports View (initially hidden) -->
+        <div id="reports-view" style="display: none;">
+            <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Available Reports</h5>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-sm btn-outline-secondary active">All</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary">Daily</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary">Weekly</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary">Monthly</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Filename</th>
+                                    <th>Type</th>
+                                    <th>Organization</th>
+                                    <th>Created At</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reports-table-body">
+                                <tr>
+                                    <td colspan="5" class="text-center">Loading reports...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings View (initially hidden) -->
+        <div id="settings-view" style="display: none;">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">Settings</h5>
+                </div>
+                <div class="card-body">
+                    <form id="settings-form">
+                        <h6 class="mb-3">Alert Thresholds</h6>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="global-split-rate-threshold">Global Split Rate Threshold (%)</label>
+                                    <input type="number" class="form-control" id="global-split-rate-threshold" min="0" max="100" value="15">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="global-increase-rate-threshold">Global Increase Rate Threshold (%)</label>
+                                    <input type="number" class="form-control" id="global-increase-rate-threshold" min="0" max="100" value="5">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h6 class="mb-3 mt-4">Organization-Specific Thresholds</h6>
+                        <div id="org-thresholds-container">
+                            <!-- Will be populated dynamically -->
+                        </div>
+                        
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary">Save Settings</button>
+                            <button type="reset" class="btn btn-secondary">Reset</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer mt-auto py-3 bg-light">
+        <div class="container-fluid">
+            <div class="d-flex justify-content-between">
+                <span class="text-muted">Split Shipment Monitor v1.0.0</span>
+                <span class="text-muted">© 2023 Manhattan Associates</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/alerts.js"></script>
+    <script src="js/reports.js"></script>
+    <script src="js/settings.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
