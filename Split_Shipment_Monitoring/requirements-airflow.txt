@@ -1,0 +1,6 @@
+python-pptx==0.6.21
+pandas==1.3.5
+boto3==1.26.114
+redis==4.5.4
+requests==2.28.2
+seaborn==0.12.2

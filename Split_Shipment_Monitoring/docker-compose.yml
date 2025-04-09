@@ -65,6 +65,9 @@ services:
 
   # Airflow components
   airflow-webserver:
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: apache/airflow:2.5.1
     container_name: airflow-webserver
     restart: always
@@ -96,9 +99,10 @@ services:
       - ./dags:/opt/airflow/dags
       - ./logs:/opt/airflow/logs
       - ./plugins:/opt/airflow/plugins
+      - ./requirements-airflow.txt:/opt/airflow/requirements-airflow.txt
     ports:
       - "8080:8080"
-    command: webserver
+    command: bash -c "pip install --no-cache-dir -r /opt/airflow/requirements-airflow.txt && airflow webserver"
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
       interval: 30s
@@ -107,6 +111,9 @@ services:
       start_period: 30s
 
   airflow-scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: apache/airflow:2.5.1
     container_name: airflow-scheduler
     restart: always
@@ -135,7 +142,8 @@ services:
       - ./dags:/opt/airflow/dags
       - ./logs:/opt/airflow/logs
       - ./plugins:/opt/airflow/plugins
-    command: scheduler
+      - ./requirements.txt:/requirements.txt
+    command: bash -c "pip install --no-cache-dir -r /opt/airflow/requirements-airflow.txt && airflow scheduler"
 
   airflow-worker:
     image: apache/airflow:2.5.1
