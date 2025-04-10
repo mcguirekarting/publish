@@ -1,3 +1,4 @@
 # Add this to your .gitignore
 *.log
 logs/
+*support.postman_collection (1).json
