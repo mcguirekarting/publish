@@ -1,4 +1,4 @@
-# Split Shipment Monitoring Microservice for Manhattan Active Omni
+# Split Shipment Monitoring Microservice for OMS
 
 This microservice monitors and analyzes split shipment rates in Manhattan Active Omni. It provides a dashboard with detailed metrics, alerts when split rates exceed thresholds, and generates exportable reports.
 

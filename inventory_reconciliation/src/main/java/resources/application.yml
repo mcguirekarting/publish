@@ -1,0 +1,128 @@
+spring:
+  application:
+    name: inventory-reconciliation
+  datasource:
+    url: jdbc:postgresql://localhost:5432/inventory_reconciliation
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: false
+
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+  endpoint:
+    health:
+      show-details: always
+
+# Manhattan API Configuration
+manhattan:
+  mao:
+    url: ${MANHATTAN_MAO_URL:http://localhost:8080}
+    auth:
+      token: ${MANHATTAN_MAO_AUTH_TOKEN:your-mao-token}
+    organization: ${MANHATTAN_MAO_ORGANIZATION:NM}
+  mawm:
+    url: ${MANHATTAN_MAWM_URL:http://localhost:8080}
+    auth:
+      token: ${MANHATTAN_MAWM_AUTH_TOKEN:your-mawm-token}
+    organization: ${MANHATTAN_MAWM_ORGANIZATION:NM}
+
+# Reconciliation Configuration
+reconciliation:
+  default-threshold: 1.0
+  default-authoritative-system: MAWM
+  dry-run: false
+  schedule:
+    enabled: true
+    interval: 3600000  # 1 hour in milliseconds
+    initial-delay: 60000  # 1 minute in milliseconds
+  # Sample items and locations for reconciliation
+  items-to-reconcile:
+    - 401053927588
+    - 401098514477
+    - 401125602108
+  locations-to-reconcile:
+    - 7010
+    - 7088
+    - 7089
+  force: false  # Don't force reconciliation by default
+
+# Resilience4j Configuration
+resilience4j:
+  circuitbreaker:
+    instances:
+      maoInventory:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 60000
+        permittedNumberOfCallsInHalfOpenState: 3
+      mawmInventory:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 60000
+        permittedNumberOfCallsInHalfOpenState: 3
+      maoInventoryUpdate:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 60000
+        permittedNumberOfCallsInHalfOpenState: 3
+      mawmInventoryUpdate:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 60000
+        permittedNumberOfCallsInHalfOpenState: 3
+  retry:
+    instances:
+      maoInventory:
+        maxRetryAttempts: 3
+        waitDuration: 1000
+        retryExceptions:
+          - org.springframework.web.client.ResourceAccessException
+          - java.util.concurrent.TimeoutException
+      mawmInventory:
+        maxRetryAttempts: 3
+        waitDuration: 1000
+        retryExceptions:
+          - org.springframework.web.client.ResourceAccessException
+          - java.util.concurrent.TimeoutException
+      maoInventoryUpdate:
+        maxRetryAttempts: 3
+        waitDuration: 1000
+        retryExceptions:
+          - org.springframework.web.client.ResourceAccessException
+          - java.util.concurrent.TimeoutException
+      mawmInventoryUpdate:
+        maxRetryAttempts: 3
+        waitDuration: 1000
+        retryExceptions:
+          - org.springframework.web.client.ResourceAccessException
+          - java.util.concurrent.TimeoutException
+
+# Logging Configuration
+logging:
+  level:
+    root: INFO
+    com.manhattan.inventory: DEBUG
+    org.springframework.web: INFO
+    org.hibernate: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

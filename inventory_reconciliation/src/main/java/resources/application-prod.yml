@@ -1,0 +1,56 @@
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+  jpa:
+    show-sql: false
+
+# Manhattan API Configuration for Production
+manhattan:
+  mao:
+    url: ${MANHATTAN_MAO_URL}
+    auth:
+      token: ${MANHATTAN_MAO_AUTH_TOKEN}
+    organization: ${MANHATTAN_MAO_ORGANIZATION}
+  mawm:
+    url: ${MANHATTAN_MAWM_URL}
+    auth:
+      token: ${MANHATTAN_MAWM_AUTH_TOKEN}
+    organization: ${MANHATTAN_MAWM_ORGANIZATION}
+
+# Reconciliation Configuration for Production
+reconciliation:
+  dry-run: false  # Make actual updates in production
+  schedule:
+    enabled: ${RECONCILIATION_SCHEDULE_ENABLED:true}
+    interval: ${RECONCILIATION_SCHEDULE_INTERVAL:3600000}  # Default: 1 hour
+  # Items and locations are configured via environment variables
+  items-to-reconcile: ${RECONCILIATION_ITEMS:401053927588,401098514477,401125602108}
+  locations-to-reconcile: ${RECONCILIATION_LOCATIONS:7010,7088,7089}
+
+# Resilience4j Configuration for Production
+resilience4j:
+  circuitbreaker:
+    instances:
+      maoInventory:
+        slidingWindowSize: 20
+        failureRateThreshold: 30
+        waitDurationInOpenState: 120000
+      mawmInventory:
+        slidingWindowSize: 20
+        failureRateThreshold: 30
+        waitDurationInOpenState: 120000
+      maoInventoryUpdate:
+        slidingWindowSize: 10
+        failureRateThreshold: 30
+        waitDurationInOpenState: 120000
+      mawmInventoryUpdate:
+        slidingWindowSize: 10
+        failureRateThreshold: 30
+        waitDurationInOpenState: 120000
+
+logging:
+  level:
+    com.manhattan.inventory: INFO
+    org.springframework.web: WARN

@@ -1,0 +1,38 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/inventory_reconciliation
+    username: postgres
+    password: postgres
+  jpa:
+    show-sql: true
+
+# Manhattan API Configuration for Development
+manhattan:
+  mao:
+    url: http://localhost:8080
+    auth:
+      token: development-mao-token
+    organization: NM
+  mawm:
+    url: http://localhost:8080
+    auth:
+      token: development-mawm-token
+    organization: NM
+
+# Reconciliation Configuration for Development
+reconciliation:
+  dry-run: true  # Don't make actual updates in development
+  schedule:
+    enabled: false  # Disable scheduled jobs in development
+  # Sample items and locations for development testing
+  items-to-reconcile:
+    - 401053927588
+    - 401098514477
+  locations-to-reconcile:
+    - 7010
+    - 7088
+
+logging:
+  level:
+    com.manhattan.inventory: DEBUG
+    org.springframework.web: DEBUG
