@@ -1,0 +1,99 @@
+Manhattan Active Omni Inventory Reconciliation Service - Replit AI Guide
+Here's how to explain this project to Replit AI in a format that makes it easy to create:
+Project Overview
+We're building a Spring Boot microservice that reconciles inventory levels between Manhattan Active Omni (MAO) and Manhattan Active Warehouse Management (MAWM) systems. This service:
+
+Queries both systems for inventory data
+Compares inventory levels for discrepancies
+Updates the non-authoritative system based on configurable rules
+Maintains history of reconciliation operations
+
+Key Technology Stack
+
+Java 17
+Spring Boot 3.2
+Spring Data JPA
+PostgreSQL for persistence
+Resilience4j for circuit breaking
+Docker for containerization
+Airflow for workflow orchestration
+
+Project Structure Description for Replit AI
+The project follows a standard Spring Boot structure with these main components:
+
+API clients for MAO and MAWM
+Models for inventory and reconciliation data
+Service layer for business logic
+Repository interfaces for data access
+REST controllers for API endpoints
+Scheduled job for automatic reconciliation
+
+Key Features to Implement
+When creating this project, please implement:
+
+REST endpoints for manual reconciliation
+Configurable rules for determining which system is authoritative
+Circuit breaking pattern to prevent cascading failures
+History tracking of all reconciliation operations
+Scheduled reconciliation for automation
+
+Implementation Strategy for Replit AI
+
+Create a new Spring Boot project with Maven
+Set up the package structure as described
+Implement the model classes first (InventoryRecord, ReconciliationResult, etc.)
+Create the service interfaces and implementations
+Implement the REST controllers
+Add configuration files and Docker support
+
+Main Components
+Each component should be a separate file. Here are the key ones:
+
+InventoryRecord.java - Model class for inventory data
+ReconciliationResult.java - Model for reconciliation operation results
+MaoInventoryClient.java - HTTP client for MAO API
+MawmInventoryClient.java - HTTP client for MAWM API
+ReconciliationService.java - Core business logic
+InventoryController.java - REST API endpoints
+InventoryReconciliationJob.java - Scheduled job
+
+Critical Implementation Details
+Please pay special attention to:
+
+Error handling with circuit breakers for resilience
+Configuration management for different environments
+Unit testing for the service layer
+API security using Bearer tokens
+
+Suggested File Creation Order
+
+Main application class and configuration
+Model classes
+Repository interfaces
+Service interfaces and implementations
+REST controllers
+Scheduled job
+Configuration files
+Docker-related files
+
+When implementing the REST API clients, remember that Manhattan Active Omni uses a specific authorization pattern with Bearer tokens and may require organization-specific headers.
+Sample API Call
+To help with implementation, here's a sample API call pattern for Manhattan Active Omni:
+POST /inventory/api/inventory/supply/search
+Headers:
+  Content-Type: application/json
+  Authorization: Bearer {token}
+  Organization: {org_id}
+Body:
+{
+  "Query": "ItemId IN ('{itemId}') AND LocationId = '{locationId}'",
+  "Template": {
+    "ItemId": null,
+    "LocationId": null,
+    "Quantity": null,
+    "SupplyAllocation": {
+      "AllocatedQuantity": null
+    }
+  }
+}
+This approach should give Replit AI enough context to create the service structure and implement the necessary components while understanding the unique requirements of integrating with Manhattan Active Omni.

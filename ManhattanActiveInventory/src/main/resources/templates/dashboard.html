@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Reconciliation Dashboard</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.2/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" th:href="@{/webjars/font-awesome/6.4.2/css/all.min.css}"/>
+    <style>
+        .card-header {
+            font-weight: bold;
+        }
+        .badge-mao {
+            background-color: #28a745;
+            color: white;
+        }
+        .badge-mawm {
+            background-color: #007bff;
+            color: white;
+        }
+        .status-pending {
+            color: #ffc107;
+        }
+        .status-approved {
+            color: #28a745;
+        }
+        .status-rejected {
+            color: #dc3545;
+        }
+        .status-auto-resolved {
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-exchange-alt"></i> Manhattan Inventory Reconciliation
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/dashboard">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard/status/PENDING">Pending</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard/status/APPROVED">Approved</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard/status/REJECTED">Rejected</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard/status/AUTO_RESOLVED">Auto-Resolved</a>
+                    </li>
+                </ul>
+                <span class="navbar-text">
+                    <i class="fas fa-clock"></i> <span th:text="${currentTime}">Current Time</span>
+                </span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${successMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${errorMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <div class="row">
+            <!-- Pending Reconciliations -->
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header bg-warning text-white">
+                        Pending Reconciliations
+                        <span class="badge bg-danger" th:text="${pendingCount}">0</span>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${pendingReconciliations.empty}" class="alert alert-info">
+                            No pending reconciliations.
+                        </div>
+                        <div th:unless="${pendingReconciliations.empty}" class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Item ID</th>
+                                        <th>Location</th>
+                                        <th>MAO Qty</th>
+                                        <th>MAWM Qty</th>
+                                        <th>Discrepancy</th>
+                                        <th>Authority</th>
+                                        <th>Time</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="result : ${pendingReconciliations}">
+                                        <td th:text="${result.itemId}">ITEM001</td>
+                                        <td th:text="${result.locationId}">STORE001</td>
+                                        <td th:text="${result.maoQuantity}">100</td>
+                                        <td th:text="${result.mawmQuantity}">90</td>
+                                        <td th:text="${result.discrepancy}">10</td>
+                                        <td>
+                                            <span th:if="${result.authoritySystem == 'MAO'}" class="badge badge-mao">MAO</span>
+                                            <span th:if="${result.authoritySystem == 'MAWM'}" class="badge badge-mawm">MAWM</span>
+                                        </td>
+                                        <td th:text="${#temporals.format(result.reconciliationTime, 'yyyy-MM-dd HH:mm')}">2025-04-12 12:30</td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <a th:href="@{/dashboard/details/{id}(id=${result.id})}" class="btn btn-sm btn-info">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" th:data-bs-target="'#approveModal' + ${result.id}">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" th:data-bs-target="'#rejectModal' + ${result.id}">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+                                            
+                                            <!-- Approval Modal -->
+                                            <div class="modal fade" th:id="'approveModal' + ${result.id}" tabindex="-1" aria-hidden="true">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header bg-success text-white">
+                                                            <h5 class="modal-title">Approve Reconciliation</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <form th:action="@{/dashboard/approve/{id}(id=${result.id})}" method="post">
+                                                            <div class="modal-body">
+                                                                <p>
+                                                                    Are you sure you want to approve this reconciliation?
+                                                                    This will update inventory in the non-authoritative system to match.
+                                                                </p>
+                                                                <div class="mb-3">
+                                                                    <label for="notes" class="form-label">Approval Notes:</label>
+                                                                    <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+                                                                </div>
+                                                                <div class="alert alert-info">
+                                                                    <strong>Item:</strong> <span th:text="${result.itemId}">ITEM001</span><br>
+                                                                    <strong>Location:</strong> <span th:text="${result.locationId}">STORE001</span><br>
+                                                                    <strong>MAO Quantity:</strong> <span th:text="${result.maoQuantity}">100</span><br>
+                                                                    <strong>MAWM Quantity:</strong> <span th:text="${result.mawmQuantity}">90</span><br>
+                                                                    <strong>Discrepancy:</strong> <span th:text="${result.discrepancy}">10</span><br>
+                                                                    <strong>Authority System:</strong> <span th:text="${result.authoritySystem}">MAO</span><br>
+                                                                </div>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                                <button type="submit" class="btn btn-success">Approve</button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Rejection Modal -->
+                                            <div class="modal fade" th:id="'rejectModal' + ${result.id}" tabindex="-1" aria-hidden="true">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header bg-danger text-white">
+                                                            <h5 class="modal-title">Reject Reconciliation</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <form th:action="@{/dashboard/reject/{id}(id=${result.id})}" method="post">
+                                                            <div class="modal-body">
+                                                                <p>
+                                                                    Are you sure you want to reject this reconciliation?
+                                                                    No inventory updates will be performed.
+                                                                </p>
+                                                                <div class="mb-3">
+                                                                    <label for="reason" class="form-label">Rejection Reason:</label>
+                                                                    <textarea class="form-control" id="reason" name="reason" rows="3" required></textarea>
+                                                                </div>
+                                                                <div class="mb-3">
+                                                                    <label for="overrideAuthority" class="form-label">Override Authority (Optional):</label>
+                                                                    <select class="form-select" id="overrideAuthority" name="overrideAuthority">
+                                                                        <option value="">No Override</option>
+                                                                        <option value="MAO">Override to MAO</option>
+                                                                        <option value="MAWM">Override to MAWM</option>
+                                                                    </select>
+                                                                </div>
+                                                                <div class="alert alert-info">
+                                                                    <strong>Item:</strong> <span th:text="${result.itemId}">ITEM001</span><br>
+                                                                    <strong>Location:</strong> <span th:text="${result.locationId}">STORE001</span><br>
+                                                                    <strong>MAO Quantity:</strong> <span th:text="${result.maoQuantity}">100</span><br>
+                                                                    <strong>MAWM Quantity:</strong> <span th:text="${result.mawmQuantity}">90</span><br>
+                                                                    <strong>Discrepancy:</strong> <span th:text="${result.discrepancy}">10</span><br>
+                                                                    <strong>Authority System:</strong> <span th:text="${result.authoritySystem}">MAO</span><br>
+                                                                </div>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                                <button type="submit" class="btn btn-danger">Reject</button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recently Processed -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        Recently Processed
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${recentlyProcessed == null || recentlyProcessed.empty}" class="alert alert-info">
+                            No recently processed reconciliations.
+                        </div>
+                        <div th:unless="${recentlyProcessed == null || recentlyProcessed.empty}" class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Item</th>
+                                        <th>Location</th>
+                                        <th>Status</th>
+                                        <th>Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="result : ${recentlyProcessed}">
+                                        <td th:text="${result.itemId}">ITEM001</td>
+                                        <td th:text="${result.locationId}">STORE001</td>
+                                        <td>
+                                            <span th:if="${result.status == 'PENDING'}" class="status-pending">
+                                                <i class="fas fa-clock"></i> Pending
+                                            </span>
+                                            <span th:if="${result.status == 'APPROVED'}" class="status-approved">
+                                                <i class="fas fa-check"></i> Approved
+                                            </span>
+                                            <span th:if="${result.status == 'REJECTED'}" class="status-rejected">
+                                                <i class="fas fa-times"></i> Rejected
+                                            </span>
+                                            <span th:if="${result.status == 'AUTO_RESOLVED'}" class="status-auto-resolved">
+                                                <i class="fas fa-robot"></i> Auto
+                                            </span>
+                                        </td>
+                                        <td th:text="${#temporals.format(result.resolvedTime != null ? result.resolvedTime : result.reconciliationTime, 'MM-dd HH:mm')}">
+                                            04-12 12:30
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card mt-3">
+                    <div class="card-header bg-primary text-white">
+                        Quick Actions
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a href="/api/inventory/reconcile/all" class="btn btn-outline-primary">
+                                <i class="fas fa-sync"></i> Run Full Reconciliation
+                            </a>
+                            <a href="/dashboard/report" class="btn btn-outline-success">
+                                <i class="fas fa-file-excel"></i> Generate Report
+                            </a>
+                            <a href="/api/health/detail" class="btn btn-outline-info">
+                                <i class="fas fa-heartbeat"></i> System Health
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:src="@{/webjars/jquery/3.7.1/jquery.min.js}"></script>
+    <script th:src="@{/webjars/bootstrap/5.3.2/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>
