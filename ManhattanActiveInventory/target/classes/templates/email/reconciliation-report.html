@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Reconciliation Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .header {
+            background-color: #003366;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .content {
+            padding: 20px;
+        }
+        .summary {
+            background-color: #f5f5f5;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .footer {
+            background-color: #f5f5f5;
+            padding: 10px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            margin-top: 20px;
+        }
+        .button {
+            display: inline-block;
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .alert {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Manhattan Inventory Reconciliation Report</h1>
+        <p th:text="${#temporals.format(#temporals.createNow(), 'MMMM dd, yyyy')}">April 12, 2025</p>
+    </div>
+    
+    <div class="content">
+        <p>
+            This is an automated report of inventory reconciliation activities from 
+            <strong th:text="${startTime}">2025-04-11T00:00:00</strong> to 
+            <strong th:text="${endTime}">2025-04-12T00:00:00</strong>.
+        </p>
+        
+        <div class="summary">
+            <h2>Summary</h2>
+            <p>
+                <strong>Total Reconciliations:</strong> <span th:text="${totalReconciliations}">10</span>
+            </p>
+            <ul>
+                <li th:each="entry : ${statusCounts}">
+                    <strong th:text="${entry.key}">PENDING</strong>: 
+                    <span th:text="${entry.value}">5</span>
+                </li>
+            </ul>
+        </div>
+        
+        <div th:if="${not #lists.isEmpty(pendingItems)}">
+            <h2>Items Requiring Attention</h2>
+            <p>
+                The following <strong th:text="${pendingItems.size()}">3</strong> items require manual review.
+                Please log in to the reconciliation dashboard to approve or reject these reconciliations.
+            </p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Item ID</th>
+                        <th>Location</th>
+                        <th>MAO Qty</th>
+                        <th>MAWM Qty</th>
+                        <th>Discrepancy</th>
+                        <th>Authority</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="item : ${pendingItems}">
+                        <td th:text="${item.itemId}">ITEM001</td>
+                        <td th:text="${item.locationId}">STORE001</td>
+                        <td th:text="${item.maoQuantity}">100</td>
+                        <td th:text="${item.mawmQuantity}">90</td>
+                        <td th:text="${item.discrepancy}">10</td>
+                        <td th:text="${item.authoritySystem}">MAO</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="alert" th:if="${pendingItems.size() > 3}">
+                <strong>Alert:</strong> You have <span th:text="${pendingItems.size()}">5</span> pending reconciliations 
+                that require your attention. Please review these items promptly to avoid inventory discrepancies.
+            </div>
+            
+            <a href="http://localhost:5000/dashboard" class="button">
+                Go to Reconciliation Dashboard
+            </a>
+        </div>
+        
+        <div th:if="${#lists.isEmpty(pendingItems)}">
+            <h2>No Items Requiring Attention</h2>
+            <p>
+                There are currently no pending reconciliations that require manual review.
+                All reconciliation items have been automatically resolved or already processed.
+            </p>
+        </div>
+        
+        <div th:if="${not #lists.isEmpty(results)}">
+            <h2>Recent Reconciliations</h2>
+            <p>
+                Below are the 10 most recent reconciliations during this period:
+            </p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Item ID</th>
+                        <th>Location</th>
+                        <th>MAO Qty</th>
+                        <th>MAWM Qty</th>
+                        <th>Status</th>
+                        <th>Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="item, iterStat : ${results}" th:if="${iterStat.index < 10}">
+                        <td th:text="${item.itemId}">ITEM001</td>
+                        <td th:text="${item.locationId}">STORE001</td>
+                        <td th:text="${item.maoQuantity}">100</td>
+                        <td th:text="${item.mawmQuantity}">90</td>
+                        <td th:text="${item.status}">PENDING</td>
+                        <td th:text="${#temporals.format(item.reconciliationTime, 'yyyy-MM-dd HH:mm')}">2025-04-12 12:30</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <p>
+                For more details, please see the attached PDF report or visit the 
+                <a href="http://localhost:5000/dashboard">Reconciliation Dashboard</a>.
+            </p>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>
+            This is an automated email from the Manhattan Inventory Reconciliation Service.
+            Please do not reply to this email.
+        </p>
+        <p>
+            If you have any questions or need assistance, please contact the system administrator.
+        </p>
+    </div>
+</body>
+</html>

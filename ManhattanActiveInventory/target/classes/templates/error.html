@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error - Inventory Reconciliation Service</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        h1 {
+            color: #444;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+        .links {
+            margin-top: 30px;
+        }
+        .links a {
+            display: inline-block;
+            margin-right: 15px;
+            text-decoration: none;
+            color: #0275d8;
+        }
+        .links a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Error</h1>
+        <p th:text="${message}">An error occurred while processing your request.</p>
+        
+        <div class="links">
+            <a href="/">Home</a>
+            <a href="/swagger-ui/index.html">API Documentation</a>
+            <a href="/api/health/status">Service Status</a>
+        </div>
+    </div>
+</body>
+</html>

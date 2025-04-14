@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reconciliation Details</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.2/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" th:href="@{/webjars/font-awesome/6.4.2/css/all.min.css}"/>
+    <style>
+        .card-header {
+            font-weight: bold;
+        }
+        .badge-mao {
+            background-color: #28a745;
+            color: white;
+        }
+        .badge-mawm {
+            background-color: #007bff;
+            color: white;
+        }
+        .status-pending {
+            color: #ffc107;
+        }
+        .status-approved {
+            color: #28a745;
+        }
+        .status-rejected {
+            color: #dc3545;
+        }
+        .status-auto-resolved {
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-exchange-alt"></i> Manhattan Inventory Reconciliation
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard/status/PENDING">Pending</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard/status/APPROVED">Approved</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard/status/REJECTED">Rejected</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard/status/AUTO_RESOLVED">Auto-Resolved</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="/dashboard">Dashboard</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Reconciliation Details</li>
+                    </ol>
+                </nav>
+                
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5>
+                            <i class="fas fa-file-alt"></i> 
+                            Reconciliation Details for 
+                            <span th:text="${result.itemId}">ITEM001</span> at 
+                            <span th:text="${result.locationId}">STORE001</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <table class="table table-bordered">
+                                    <tr>
+                                        <th class="table-light" style="width: 30%">Item ID</th>
+                                        <td th:text="${result.itemId}">ITEM001</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="table-light">Location ID</th>
+                                        <td th:text="${result.locationId}">STORE001</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="table-light">MAO Quantity</th>
+                                        <td th:text="${result.maoQuantity}">100</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="table-light">MAWM Quantity</th>
+                                        <td th:text="${result.mawmQuantity}">90</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="table-light">Discrepancy</th>
+                                        <td>
+                                            <span th:if="${result.discrepancy != 0}" class="text-danger fw-bold" th:text="${result.discrepancy}">10</span>
+                                            <span th:if="${result.discrepancy == 0}" class="text-success fw-bold">0 (No Discrepancy)</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th class="table-light">Reconciled Quantity</th>
+                                        <td th:text="${result.reconciledQuantity}">100</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="table-light">Authority System</th>
+                                        <td>
+                                            <span th:if="${result.authoritySystem == 'MAO'}" class="badge badge-mao">MAO</span>
+                                            <span th:if="${result.authoritySystem == 'MAWM'}" class="badge badge-mawm">MAWM</span>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <table class="table table-bordered">
+                                    <tr>
+                                        <th class="table-light" style="width: 30%">Status</th>
+                                        <td>
+                                            <span th:if="${result.status == T(com.manhattan.reconciliation.model.ReconciliationStatus).PENDING}" class="status-pending">
+                                                <i class="fas fa-clock"></i> Pending
+                                            </span>
+                                            <span th:if="${result.status == T(com.manhattan.reconciliation.model.ReconciliationStatus).APPROVED}" class="status-approved">
+                                                <i class="fas fa-check"></i> Approved
+                                            </span>
+                                            <span th:if="${result.status == T(com.manhattan.reconciliation.model.ReconciliationStatus).REJECTED}" class="status-rejected">
+                                                <i class="fas fa-times"></i> Rejected
+                                            </span>
+                                            <span th:if="${result.status == T(com.manhattan.reconciliation.model.ReconciliationStatus).AUTO_RESOLVED}" class="status-auto-resolved">
+                                                <i class="fas fa-robot"></i> Auto-Resolved
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th class="table-light">Auto Resolved</th>
+                                        <td>
+                                            <span th:if="${result.autoResolved}" class="text-success">Yes</span>
+                                            <span th:unless="${result.autoResolved}" class="text-danger">No</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th class="table-light">Reconciliation Time</th>
+                                        <td th:text="${#temporals.format(result.reconciliationTime, 'yyyy-MM-dd HH:mm:ss')}">2025-04-12 12:30:00</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="table-light">Resolved Time</th>
+                                        <td th:text="${result.resolvedTime != null ? #temporals.format(result.resolvedTime, 'yyyy-MM-dd HH:mm:ss') : 'Not resolved yet'}">2025-04-12 12:35:00</td>
+                                    </tr>
+                                    <tr th:if="${result.approved}">
+                                        <th class="table-light">Approved By</th>
+                                        <td th:text="${result.approvedBy != null ? result.approvedBy : 'System'}">User123</td>
+                                    </tr>
+                                    <tr th:if="${result.approved && result.approverNotes != null}">
+                                        <th class="table-light">Approval Notes</th>
+                                        <td th:text="${result.approverNotes}">Approved after verification</td>
+                                    </tr>
+                                    <tr th:if="${result.rejected && result.rejectionReason != null}">
+                                        <th class="table-light">Rejection Reason</th>
+                                        <td th:text="${result.rejectionReason}">Requires manual investigation</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-header bg-info text-white">
+                                        Reconciliation Message
+                                    </div>
+                                    <div class="card-body">
+                                        <p th:text="${result.reconciliationMessage}">
+                                            Discrepancy detected between MAO and MAWM. MAO shows 100 units, MAWM shows 90 units.
+                                            Using MAO as system of authority. Recommended action: Update MAWM to 100 units.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-3" th:if="${result.status == T(com.manhattan.reconciliation.model.ReconciliationStatus).PENDING}">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header bg-success text-white">
+                                        Approve This Reconciliation
+                                    </div>
+                                    <div class="card-body">
+                                        <form th:action="@{/dashboard/approve/{id}(id=${result.id})}" method="post">
+                                            <div class="mb-3">
+                                                <label for="notes" class="form-label">Approval Notes:</label>
+                                                <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+                                            </div>
+                                            <button type="submit" class="btn btn-success">
+                                                <i class="fas fa-check"></i> Approve Reconciliation
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header bg-danger text-white">
+                                        Reject This Reconciliation
+                                    </div>
+                                    <div class="card-body">
+                                        <form th:action="@{/dashboard/reject/{id}(id=${result.id})}" method="post">
+                                            <div class="mb-3">
+                                                <label for="reason" class="form-label">Rejection Reason:</label>
+                                                <textarea class="form-control" id="reason" name="reason" rows="3" required></textarea>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="overrideAuthority" class="form-label">Override Authority (Optional):</label>
+                                                <select class="form-select" id="overrideAuthority" name="overrideAuthority">
+                                                    <option value="">No Override</option>
+                                                    <option value="MAO">Override to MAO</option>
+                                                    <option value="MAWM">Override to MAWM</option>
+                                                </select>
+                                            </div>
+                                            <button type="submit" class="btn btn-danger">
+                                                <i class="fas fa-times"></i> Reject Reconciliation
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-3">
+                            <a href="/dashboard" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Dashboard
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:src="@{/webjars/jquery/3.7.1/jquery.min.js}"></script>
+    <script th:src="@{/webjars/bootstrap/5.3.2/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>
